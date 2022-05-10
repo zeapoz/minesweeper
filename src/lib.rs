@@ -8,31 +8,40 @@ use wasm_bindgen::prelude::*;
 #[global_allocator]
 static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 
-enum Tile {
-    Empty(u32),
+#[wasm_bindgen]
+pub enum Tile {
+    Empty,
     Mine,
 }
 
 #[wasm_bindgen]
-struct Board {
+pub struct Board {
     width: u32,
     height: u32,
+    tiles: Vec<Tile>,
 }
 
 #[wasm_bindgen]
 impl Board {
-    fn new() -> Board {
+    pub fn new(width: u32, height: u32) -> Board {
+        let tiles = (0..width * height)
+            .map(|i| {
+                if i % 2 == 0 && i % 3 != 0 {
+                    Tile::Mine
+                } else {
+                    Tile::Empty
+                }
+            })
+            .collect();
+
         Board {
-            width: 10,
-            height: 10,
+            width,
+            height,
+            tiles,
         }
     }
 
-    fn width(&self) -> u32 {
-        self.width
-    }
-
-    fn height(&self) -> u32 {
-        self.width
+    pub fn tiles(&self) -> *const Tile {
+        self.tiles.as_ptr()
     }
 }
