@@ -69,6 +69,9 @@ const drawTiles = () => {
     const uncoveredPtr = board.uncovered();
     const uncovered = new Uint8Array(memory.buffer, uncoveredPtr, SIZE ** 2);
 
+    const neighborsPtr = board.neighbors();
+    const neighbors = new Uint8Array(memory.buffer, neighborsPtr, SIZE ** 2);
+
     for (let j = 0; j < SIZE; j++) {
         for (let i = 0; i < SIZE; i++) {
             let index = getIndex(i, j);
@@ -83,6 +86,12 @@ const drawTiles = () => {
                     ctx.beginPath();
                     ctx.arc(i * TILE_SIZE + TILE_SIZE / 2, j * TILE_SIZE + TILE_SIZE / 2, TILE_SIZE / 3, 0, 2 * Math.PI);
                     ctx.fill();
+                } else {
+                    // Draw mine neighbor count
+                    ctx.font = TILE_SIZE + "px Arial";
+                    ctx.fillStyle = MINE_COLOR;
+                    ctx.textAlign = "center";
+                    ctx.fillText(neighbors[index].toString(), i * TILE_SIZE + TILE_SIZE / 2, j * TILE_SIZE + TILE_SIZE * 0.85);
                 }
             }
         }

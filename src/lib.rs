@@ -28,6 +28,7 @@ pub struct Board {
     height: u32,
     tiles: Vec<Tile>,
     uncovered: Vec<TileState>,
+    neighbors: Vec<u8>,
 }
 
 #[wasm_bindgen]
@@ -44,11 +45,14 @@ impl Board {
             })
             .collect();
 
+        let neighbors = calculate_neighbors(&tiles, width, height);
+
         Board {
             width,
             height,
             tiles,
             uncovered,
+            neighbors,
         }
     }
 
@@ -64,6 +68,25 @@ impl Board {
     pub fn uncovered(&self) -> *const TileState {
         self.uncovered.as_ptr()
     }
+
+    pub fn neighbors(&self) -> *const u8 {
+        self.neighbors.as_ptr()
+    }
+}
+
+fn calculate_neighbors(board: &Vec<Tile>, width: u32, height: u32) -> Vec<u8> {
+    let mut neighbors = vec![];
+
+    for i in 0..(width * height) {
+        let sum = sum_neighbors(board, i, width, height);
+        neighbors.push(sum);
+    }
+
+    neighbors
+}
+
+fn sum_neighbors(board: &Vec<Tile>, index: u32, width: u32, height: u32) -> u8 {
+    0
 }
 
 impl Board {
