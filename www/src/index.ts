@@ -1,8 +1,12 @@
 import { memory } from "minesweeper/minesweeper_bg.wasm";
 import { Board, Tile, TileState } from "minesweeper";
 
+const TILE_COLOR = "#353535";
+const EMPTY_COLOR = "#969696";
+const MINE_COLOR = "#000000";
+
 const SIZE = 20;
-const TILE_SIZE = 20;
+const TILE_SIZE = 36;
 
 const board = Board.new(SIZE, SIZE);
 
@@ -25,9 +29,17 @@ canvas.addEventListener("click", event => {
 
     board.uncover_tile(row, col);
 
+    draw();
+})
+
+const draw = () => {
+    // Clear screen
+    ctx.fillStyle = TILE_COLOR;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
     drawGrid();
     drawTiles();
-})
+}
 
 const getIndex = (x: number, y: number) => {
     return y * SIZE + x;
@@ -35,7 +47,7 @@ const getIndex = (x: number, y: number) => {
 
 const drawGrid = () => {
     ctx.beginPath();
-    ctx.strokeStyle = "#000000";
+    ctx.strokeStyle = MINE_COLOR;
 
     for (let i = 0; i <= SIZE; i++) {
         ctx.moveTo(i * TILE_SIZE, 0)
@@ -61,13 +73,20 @@ const drawTiles = () => {
         for (let i = 0; i < SIZE; i++) {
             let index = getIndex(i, j);
             if (uncovered[index] === TileState.Uncovered) {
-                ctx.beginPath();
-                ctx.arc(i * SIZE + SIZE / 2, j * SIZE + SIZE / 2, SIZE / 3, 0, 2 * Math.PI);
-                ctx.fill();
+                // Draw clear color
+                ctx.fillStyle = EMPTY_COLOR;
+                ctx.fillRect(i * TILE_SIZE + 1, j * TILE_SIZE + 1, TILE_SIZE - 2, TILE_SIZE - 2);
+
+                if (tiles[index] === Tile.Mine) {
+                    // Draw mine
+                    ctx.fillStyle = MINE_COLOR;
+                    ctx.beginPath();
+                    ctx.arc(i * TILE_SIZE + TILE_SIZE / 2, j * TILE_SIZE + TILE_SIZE / 2, TILE_SIZE / 3, 0, 2 * Math.PI);
+                    ctx.fill();
+                }
             }
         }
     }
 }
 
-drawGrid();
-drawTiles();
+draw();
