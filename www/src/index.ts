@@ -2,8 +2,20 @@ import { memory } from "minesweeper/minesweeper_bg.wasm";
 import { Board, Tile, TileState } from "minesweeper";
 
 const TILE_COLOR = "#353535";
-const EMPTY_COLOR = "#969696";
+const EMPTY_COLOR = "#C0C0C0";
 const MINE_COLOR = "#000000";
+
+const NUMBER_COLORS = new Map([
+    [0, EMPTY_COLOR],
+    [1, "#0100FE"],
+    [2, "#008001"],
+    [3, "#FE0000"],
+    [4, "#00007F"],
+    [5, "#670000"],
+    [6, "#008081"],
+    [7, MINE_COLOR],
+    [8, "#808080"],
+])
 
 const SIZE = 20;
 const TILE_SIZE = 36;
@@ -89,9 +101,10 @@ const drawTiles = () => {
                 } else {
                     // Draw mine neighbor count
                     ctx.font = TILE_SIZE + "px Arial";
-                    ctx.fillStyle = MINE_COLOR;
+                    let n = neighbors[index];
+                    ctx.fillStyle = NUMBER_COLORS.get(n);
                     ctx.textAlign = "center";
-                    ctx.fillText(neighbors[index].toString(), i * TILE_SIZE + TILE_SIZE / 2, j * TILE_SIZE + TILE_SIZE * 0.85);
+                    ctx.fillText(n.toString(), i * TILE_SIZE + TILE_SIZE / 2, j * TILE_SIZE + TILE_SIZE * 0.85);
                 }
             }
         }
