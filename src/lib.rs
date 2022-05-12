@@ -10,9 +10,10 @@ static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 
 #[wasm_bindgen]
 #[repr(u8)]
+#[derive(Clone, Copy)]
 pub enum Tile {
-    Empty,
-    Mine,
+    Empty = 0,
+    Mine = 1,
 }
 
 #[wasm_bindgen]
@@ -45,15 +46,16 @@ impl Board {
             })
             .collect();
 
-        let neighbors = calculate_neighbors(&tiles, width, height);
-
-        Board {
+        let mut board = Board {
             width,
             height,
             tiles,
             uncovered,
-            neighbors,
-        }
+            neighbors: vec![],
+        };
+
+        board.calculate_neighbors();
+        board
     }
 
     pub fn uncover_tile(&mut self, row: u32, col: u32) {
@@ -74,23 +76,47 @@ impl Board {
     }
 }
 
-fn calculate_neighbors(board: &Vec<Tile>, width: u32, height: u32) -> Vec<u8> {
-    let mut neighbors = vec![];
-
-    for i in 0..(width * height) {
-        let sum = sum_neighbors(board, i, width, height);
-        neighbors.push(sum);
-    }
-
-    neighbors
-}
-
-fn sum_neighbors(board: &Vec<Tile>, index: u32, width: u32, height: u32) -> u8 {
-    0
-}
-
 impl Board {
     fn get_index(&self, row: u32, col: u32) -> usize {
         (row * self.width + col) as usize
+    }
+
+    fn calculate_neighbors(&mut self) {
+        let mut neighbors = vec![];
+
+        for row in 0..self.height {
+            for col in 0..self.width {
+                let sum = self.sum_neighbors(row, col);
+                neighbors.push(sum);
+            }
+        }
+
+        self.neighbors = neighbors;
+    }
+
+    fn sum_neighbors(&self, row: u32, col: u32) -> u8 {
+        let mut sum = 0;
+        for delta_row in [-1, 0, 1].iter().cloned() {
+            for delta_col in [-1, 0, 1].iter().cloned() {
+                if delta_row == 0 && delta_col == 0 {
+                    continue;
+                }
+
+                let neighbor_row = row as i32 + delta_row;
+                let neighbor_col = col as i32 + delta_col;
+
+                if neighbor_row < 0
+                    || neighbor_col < 0
+                    || neighbor_row >= self.height as i32
+                    || neighbor_col >= self.width as i32
+                {
+                    continue;
+                }
+
+                let idx = self.get_index(neighbor_row as u32, neighbor_col as u32);
+                sum += self.tiles[idx] as u8;
+            }
+        }
+        sum
     }
 }
