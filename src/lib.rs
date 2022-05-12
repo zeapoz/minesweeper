@@ -1,5 +1,6 @@
 mod utils;
 
+use rand::{thread_rng, Rng};
 use wasm_bindgen::prelude::*;
 
 // When the `wee_alloc` feature is enabled, use `wee_alloc` as the global
@@ -10,7 +11,7 @@ static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 
 #[wasm_bindgen]
 #[repr(u8)]
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, PartialEq)]
 pub enum Tile {
     Empty = 0,
     Mine = 1,
@@ -18,6 +19,7 @@ pub enum Tile {
 
 #[wasm_bindgen]
 #[repr(u8)]
+#[derive(PartialEq)]
 pub enum TileState {
     Covered,
     Uncovered,
@@ -35,10 +37,11 @@ pub struct Board {
 #[wasm_bindgen]
 impl Board {
     pub fn new(width: u32, height: u32) -> Board {
+        let mut rng = thread_rng();
         let uncovered = (0..width * height).map(|_| TileState::Covered).collect();
         let tiles = (0..width * height)
-            .map(|i| {
-                if i % 2 == 0 && i % 3 != 0 {
+            .map(|_| {
+                if rng.gen_range(0.0, 1.0) > 0.8 {
                     Tile::Mine
                 } else {
                     Tile::Empty
@@ -60,7 +63,35 @@ impl Board {
 
     pub fn uncover_tile(&mut self, row: u32, col: u32) {
         let i = self.get_index(row, col);
+        if self.uncovered[i] == TileState::Uncovered {
+            return;
+        }
+
         self.uncovered[i] = TileState::Uncovered;
+
+        // Flood fill neighbors if no mines are nearby
+        if self.neighbors[i] == 0 && self.tiles[i] != Tile::Mine {
+            for delta_row in [-1, 0, 1].iter().cloned() {
+                for delta_col in [-1, 0, 1].iter().cloned() {
+                    if delta_row == 0 && delta_col == 0 {
+                        continue;
+                    }
+
+                    let neighbor_row = row as i32 + delta_row;
+                    let neighbor_col = col as i32 + delta_col;
+
+                    if neighbor_row < 0
+                        || neighbor_col < 0
+                        || neighbor_row >= self.height as i32
+                        || neighbor_col >= self.width as i32
+                    {
+                        continue;
+                    }
+
+                    self.uncover_tile(neighbor_row as u32, neighbor_col as u32);
+                }
+            }
+        }
     }
 
     pub fn tiles(&self) -> *const Tile {
