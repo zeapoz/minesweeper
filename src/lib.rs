@@ -23,6 +23,7 @@ pub enum Tile {
 pub enum TileState {
     Covered,
     Uncovered,
+    Flagged,
 }
 
 #[wasm_bindgen]
@@ -63,7 +64,7 @@ impl Board {
 
     pub fn uncover_tile(&mut self, row: u32, col: u32) {
         let i = self.get_index(row, col);
-        if self.uncovered[i] == TileState::Uncovered {
+        if self.uncovered[i] != TileState::Covered {
             return;
         }
 
@@ -91,6 +92,16 @@ impl Board {
                     self.uncover_tile(neighbor_row as u32, neighbor_col as u32);
                 }
             }
+        }
+    }
+
+    pub fn flag_tile(&mut self, row: u32, col: u32) {
+        let i = self.get_index(row, col);
+
+        self.uncovered[i] = match self.uncovered[i] {
+            TileState::Covered => TileState::Flagged,
+            TileState::Uncovered => return,
+            TileState::Flagged => TileState::Covered,
         }
     }
 
