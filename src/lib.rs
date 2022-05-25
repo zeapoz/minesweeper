@@ -38,10 +38,10 @@ pub struct Board {
 
 #[wasm_bindgen]
 impl Board {
-    pub fn new(width: u32, height: u32) -> Board {
+    pub fn new(width: u32, height: u32, click_pos: usize) -> Board {
         let mut rng = thread_rng();
         let uncovered = (0..width * height).map(|_| TileState::Covered).collect();
-        let tiles = (0..width * height)
+        let mut tiles: Vec<Tile> = (0..width * height)
             .map(|_| {
                 if rng.gen_range(0.0, 1.0) > 0.8 {
                     Tile::Mine
@@ -50,6 +50,9 @@ impl Board {
                 }
             })
             .collect();
+
+        // Replace clicked tile with an empty one
+        tiles[click_pos] = Tile::Empty;
 
         let mut board = Board {
             width,

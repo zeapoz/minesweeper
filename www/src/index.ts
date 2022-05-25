@@ -20,22 +20,42 @@ const NUMBER_COLORS = new Map([
 const SIZE = 20;
 const TILE_SIZE = 36;
 
-const board = Board.new(SIZE, SIZE);
-
 const canvas = document.getElementById("minesweeper-canvas") as HTMLCanvasElement;
 canvas.width = SIZE * TILE_SIZE;
 canvas.height = SIZE * TILE_SIZE;
 const ctx = canvas.getContext("2d");
 
+const createBoard = (width: number, height: number, index: number): Board => {
+  return Board.new(width, height, index);
+}
+
+let board: Board = null;
+
+// Reset button click event
+document.getElementById("reset-button").addEventListener("click", event => {
+  if (board) {
+    board = null;
+    draw()
+  }
+});
+
 // Handle left click event
 canvas.addEventListener("click", event => {
-  if (board.has_lost()) {
-    return;
-  }
-
   let coords = getMouseCoords(event);
   let row = coords[0];
   let col = coords[1];
+
+  // If board doesn't exist, create a new
+  if (!board) {
+    let clickIndex = getIndex(row, col);
+    console.log(clickIndex);
+
+    board = createBoard(SIZE, SIZE, clickIndex);
+  }
+
+  if (board.has_lost()) {
+    return;
+  }
 
   board.uncover_tile(row, col);
 
@@ -81,11 +101,14 @@ const draw = () => {
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
   drawGrid();
-  drawTiles();
+
+  if (board) {
+    drawTiles();
+  }
 }
 
-const getIndex = (x: number, y: number) => {
-  return y * SIZE + x;
+const getIndex = (row: number, col: number) => {
+  return row * SIZE + col;
 }
 
 const drawGrid = () => {
@@ -117,7 +140,7 @@ const drawTiles = () => {
 
   for (let j = 0; j < SIZE; j++) {
     for (let i = 0; i < SIZE; i++) {
-      let index = getIndex(i, j);
+      let index = getIndex(j, i);
       if (uncovered[index] === TileState.Uncovered) {
         // Draw clear color
         ctx.fillStyle = EMPTY_COLOR;
