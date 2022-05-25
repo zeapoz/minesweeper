@@ -33,6 +33,7 @@ pub struct Board {
     tiles: Vec<Tile>,
     uncovered: Vec<TileState>,
     neighbors: Vec<u8>,
+    lost: bool,
 }
 
 #[wasm_bindgen]
@@ -56,6 +57,7 @@ impl Board {
             tiles,
             uncovered,
             neighbors: vec![],
+            lost: false,
         };
 
         board.calculate_neighbors();
@@ -69,6 +71,13 @@ impl Board {
         }
 
         self.uncovered[i] = TileState::Uncovered;
+
+        // Lose if tile is mine
+        if self.tiles[i] == Tile::Mine {
+            self.lost = true;
+            self.reveal_mines();
+            return;
+        }
 
         // Flood fill neighbors if no mines are nearby
         if self.neighbors[i] == 0 && self.tiles[i] != Tile::Mine {
@@ -105,6 +114,10 @@ impl Board {
         }
     }
 
+    pub fn has_lost(&self) -> bool {
+        self.lost
+    }
+
     pub fn tiles(&self) -> *const Tile {
         self.tiles.as_ptr()
     }
@@ -121,6 +134,14 @@ impl Board {
 impl Board {
     fn get_index(&self, row: u32, col: u32) -> usize {
         (row * self.width + col) as usize
+    }
+
+    fn reveal_mines(&mut self) {
+        for i in 0..(self.width * self.height) as usize {
+            if self.tiles[i] == Tile::Mine {
+                self.uncovered[i] = TileState::Uncovered;
+            }
+        }
     }
 
     fn calculate_neighbors(&mut self) {

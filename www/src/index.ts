@@ -29,6 +29,10 @@ const ctx = canvas.getContext("2d");
 
 // Handle left click event
 canvas.addEventListener("click", event => {
+  if (board.has_lost()) {
+    return;
+  }
+
   let coords = getMouseCoords(event);
   let row = coords[0];
   let col = coords[1];
@@ -40,6 +44,9 @@ canvas.addEventListener("click", event => {
 
 // Handle right click event and disable context menu
 canvas.addEventListener("contextmenu", event => {
+  if (board.has_lost()) {
+    return;
+  }
 
   let coords = getMouseCoords(event);
   let row = coords[0];
