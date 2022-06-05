@@ -17,13 +17,25 @@ const NUMBER_COLORS = new Map([
   [8, "#808080"],
 ])
 
-const SIZE = 20;
+const EASY_SIZE = 10;
+const MEDIUM_SIZE = 18;
+const HARD_SIZE = 24;
+
 const TILE_SIZE = 36;
 
+let size = MEDIUM_SIZE;
+
 const canvas = document.getElementById("minesweeper-canvas") as HTMLCanvasElement;
-canvas.width = SIZE * TILE_SIZE;
-canvas.height = SIZE * TILE_SIZE;
+resizeCanvas();
 const ctx = canvas.getContext("2d");
+
+enum Difficulty {
+  Easy,
+  Medium,
+  Hard,
+}
+
+let currentDifficulty = Difficulty.Medium;
 
 const createBoard = (width: number, height: number, index: number): Board => {
   return Board.new(width, height, index);
@@ -31,11 +43,30 @@ const createBoard = (width: number, height: number, index: number): Board => {
 
 let board: Board = null;
 
+// Click events for difficulty chooser
+document.getElementById("easy-button").addEventListener("click", () => {
+  currentDifficulty = Difficulty.Easy;
+  updateSize();
+  draw();
+});
+
+document.getElementById("medium-button").addEventListener("click", () => {
+  currentDifficulty = Difficulty.Medium;
+  updateSize();
+  draw();
+});
+
+document.getElementById("hard-button").addEventListener("click", () => {
+  currentDifficulty = Difficulty.Hard;
+  updateSize();
+  draw();
+});
+
 // Reset button click event
-document.getElementById("reset-button").addEventListener("click", event => {
+document.getElementById("reset-button").addEventListener("click", () => {
   if (board) {
     board = null;
-    draw()
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
   }
 });
 
@@ -48,9 +79,9 @@ canvas.addEventListener("click", event => {
   // If board doesn't exist, create a new
   if (!board) {
     let clickIndex = getIndex(row, col);
-    console.log(clickIndex);
 
-    board = createBoard(SIZE, SIZE, clickIndex);
+    updateSize();
+    board = createBoard(size, size, clickIndex);
   }
 
   if (board.has_lost()) {
@@ -95,11 +126,13 @@ const getMouseCoords = (event: MouseEvent) => {
   return [row, col];
 }
 
-const draw = () => {
-  // Clear screen
+const clearCanvas = () => {
   ctx.fillStyle = TILE_COLOR;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
+}
 
+const draw = () => {
+  clearCanvas();
   drawGrid();
 
   if (board) {
@@ -108,21 +141,21 @@ const draw = () => {
 }
 
 const getIndex = (row: number, col: number) => {
-  return row * SIZE + col;
+  return row * size + col;
 }
 
 const drawGrid = () => {
   ctx.beginPath();
   ctx.strokeStyle = MINE_COLOR;
 
-  for (let i = 0; i <= SIZE; i++) {
+  for (let i = 0; i <= size; i++) {
     ctx.moveTo(i * TILE_SIZE, 0)
-    ctx.lineTo(i * TILE_SIZE, SIZE * TILE_SIZE)
+    ctx.lineTo(i * TILE_SIZE, size * TILE_SIZE)
   }
 
-  for (let j = 0; j <= SIZE; j++) {
+  for (let j = 0; j <= size; j++) {
     ctx.moveTo(0, j * TILE_SIZE)
-    ctx.lineTo(SIZE * TILE_SIZE, j * TILE_SIZE)
+    ctx.lineTo(size * TILE_SIZE, j * TILE_SIZE)
   }
 
   ctx.stroke();
@@ -130,16 +163,16 @@ const drawGrid = () => {
 
 const drawTiles = () => {
   const tilesPtr = board.tiles();
-  const tiles = new Uint8Array(memory.buffer, tilesPtr, SIZE ** 2);
+  const tiles = new Uint8Array(memory.buffer, tilesPtr, size ** 2);
 
   const uncoveredPtr = board.uncovered();
-  const uncovered = new Uint8Array(memory.buffer, uncoveredPtr, SIZE ** 2);
+  const uncovered = new Uint8Array(memory.buffer, uncoveredPtr, size ** 2);
 
   const neighborsPtr = board.neighbors();
-  const neighbors = new Uint8Array(memory.buffer, neighborsPtr, SIZE ** 2);
+  const neighbors = new Uint8Array(memory.buffer, neighborsPtr, size ** 2);
 
-  for (let j = 0; j < SIZE; j++) {
-    for (let i = 0; i < SIZE; i++) {
+  for (let j = 0; j < size; j++) {
+    for (let i = 0; i < size; i++) {
       let index = getIndex(j, i);
       if (uncovered[index] === TileState.Uncovered) {
         // Draw clear color
@@ -171,4 +204,24 @@ const drawTiles = () => {
   }
 }
 
-draw();
+function updateSize() {
+  switch (currentDifficulty) {
+    case Difficulty.Easy:
+      size = EASY_SIZE;
+      break;
+    case Difficulty.Hard:
+      size = HARD_SIZE;
+      break;
+    default:
+      size = MEDIUM_SIZE;
+      break;
+  }
+
+  resizeCanvas();
+}
+
+function resizeCanvas() {
+  canvas.width = size * TILE_SIZE;
+  canvas.height = size * TILE_SIZE;
+}
+
