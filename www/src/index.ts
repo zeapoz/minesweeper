@@ -47,28 +47,40 @@ let board: Board = null;
 document.getElementById("easy-button").addEventListener("click", () => {
   currentDifficulty = Difficulty.Easy;
   updateSize();
+  hideDifficulty();
   draw();
 });
 
 document.getElementById("medium-button").addEventListener("click", () => {
   currentDifficulty = Difficulty.Medium;
   updateSize();
+  hideDifficulty();
   draw();
 });
 
 document.getElementById("hard-button").addEventListener("click", () => {
   currentDifficulty = Difficulty.Hard;
   updateSize();
+  hideDifficulty();
   draw();
 });
 
 // Reset button click event
 document.getElementById("reset-button").addEventListener("click", () => {
-  if (board) {
-    board = null;
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-  }
+  board = null;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  draw();
+  showDifficulty();
 });
+
+// Show or hide difficulty chooser menu
+const hideDifficulty = () => {
+  document.getElementById("difficulty-container").style.visibility = "hidden";
+}
+
+const showDifficulty = () => {
+  document.getElementById("difficulty-container").style.visibility = "visible";
+}
 
 // Handle left click event
 canvas.addEventListener("click", event => {
