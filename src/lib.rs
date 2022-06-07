@@ -51,9 +51,6 @@ impl Board {
             })
             .collect();
 
-        // Replace clicked tile with an empty one
-        tiles[click_pos] = Tile::Empty;
-
         let mut board = Board {
             width,
             height,
@@ -62,6 +59,30 @@ impl Board {
             neighbors: vec![],
             lost: false,
         };
+
+        // Replace 3x3 around clicked tile with empties
+        let width = width as i32;
+        for offset in [
+            -width - 1,
+            -width,
+            -width + 1,
+            -1,
+            0,
+            1,
+            width - 1,
+            width,
+            width + 1,
+        ]
+        .iter()
+        .cloned()
+        {
+            let current_i = click_pos as i32 + offset;
+            if current_i >= width * height as i32 || current_i < 0 {
+                continue;
+            }
+
+            board.tiles[current_i as usize] = Tile::Empty;
+        }
 
         board.calculate_neighbors();
         board
