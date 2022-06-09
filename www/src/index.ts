@@ -102,6 +102,11 @@ canvas.addEventListener("click", event => {
 
   board.uncover_tile(row, col);
 
+  // Check win condition
+  if (board.has_won()) {
+    console.log("You won!");
+  }
+
   draw();
 });
 

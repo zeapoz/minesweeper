@@ -41,7 +41,7 @@ impl Board {
     pub fn new(width: u32, height: u32, click_pos: usize) -> Board {
         let mut rng = thread_rng();
         let uncovered = (0..width * height).map(|_| TileState::Covered).collect();
-        let mut tiles: Vec<Tile> = (0..width * height)
+        let tiles: Vec<Tile> = (0..width * height)
             .map(|_| {
                 if rng.gen_range(0.0, 1.0) > 0.8 {
                     Tile::Mine
@@ -136,6 +136,20 @@ impl Board {
             TileState::Uncovered => return,
             TileState::Flagged => TileState::Covered,
         }
+    }
+
+    pub fn has_won(&self) -> bool {
+        if self.has_lost() {
+            return false;
+        }
+
+        for tile in self.uncovered.iter() {
+            if tile == &TileState::Covered {
+                return false;
+            }
+        }
+
+        true
     }
 
     pub fn has_lost(&self) -> bool {
