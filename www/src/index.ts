@@ -83,7 +83,12 @@ const showDifficulty = () => {
 }
 
 // Handle left click event
-canvas.addEventListener("click", event => {
+canvas.addEventListener("mousedown", event => {
+  // Don't check for right clicks
+  if (event.button === 2) {
+    return
+  };
+
   let coords = getMouseCoords(event);
   let row = coords[0];
   let col = coords[1];
@@ -100,7 +105,16 @@ canvas.addEventListener("click", event => {
     return;
   }
 
-  board.uncover_tile(row, col);
+  switch (event.button) {
+    // Left click
+    case 0:
+      board.uncover_tile(row, col);
+      break;
+    // Middle click
+    case 1:
+      board.uncover_square(row, col);
+      break;
+  }
 
   // Check win condition
   if (board.has_won()) {

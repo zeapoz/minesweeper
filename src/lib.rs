@@ -111,18 +111,59 @@ impl Board {
                         continue;
                     }
 
-                    let neighbor_row = row as i32 + delta_row;
-                    let neighbor_col = col as i32 + delta_col;
+                    let neighbor_row = (row as i32 + delta_row) as u32;
+                    let neighbor_col = (col as i32 + delta_col) as u32;
 
-                    if neighbor_row < 0
-                        || neighbor_col < 0
-                        || neighbor_row >= self.height as i32
-                        || neighbor_col >= self.width as i32
-                    {
+                    if !self.is_in_bounds(neighbor_row, neighbor_col) {
                         continue;
                     }
 
-                    self.uncover_tile(neighbor_row as u32, neighbor_col as u32);
+                    self.uncover_tile(neighbor_row, neighbor_col);
+                }
+            }
+        }
+    }
+
+    pub fn uncover_square(&mut self, row: u32, col: u32) {
+        let i = self.get_index(row, col);
+        if self.uncovered[i] != TileState::Uncovered {
+            return;
+        }
+
+        // Check if enough flags exist around tile
+        let mut sum = 0;
+        for delta_row in [-1, 0, 1].iter().cloned() {
+            for delta_col in [-1, 0, 1].iter().cloned() {
+                if delta_row == 0 && delta_col == 0 {
+                    continue;
+                }
+
+                let neighbor_row = (row as i32 + delta_row) as u32;
+                let neighbor_col = (col as i32 + delta_col) as u32;
+
+                if !self.is_in_bounds(neighbor_row, neighbor_col) {
+                    continue;
+                }
+
+                let neighbor_i = self.get_index(neighbor_row, neighbor_col);
+                if self.uncovered[neighbor_i] == TileState::Flagged {
+                    sum += 1;
+                }
+            }
+        }
+
+        // Uncover 3x3 around tile
+        if sum == self.neighbors[i] {
+            for delta_row in [-1, 0, 1].iter().cloned() {
+                for delta_col in [-1, 0, 1].iter().cloned() {
+                    let neighbor_row = (row as i32 + delta_row) as u32;
+                    let neighbor_col = (col as i32 + delta_col) as u32;
+
+                    if !self.is_in_bounds(neighbor_row, neighbor_col) {
+                        continue;
+                    }
+
+                    self.uncover_tile(neighbor_row, neighbor_col);
                 }
             }
         }
@@ -180,6 +221,13 @@ impl Board {
                 self.uncovered[i] = TileState::Uncovered;
             }
         }
+    }
+
+    fn is_in_bounds(&self, col: u32, row: u32) -> bool {
+        if col >= self.height || row >= self.width {
+            return false;
+        }
+        true
     }
 
     fn calculate_neighbors(&mut self) {
