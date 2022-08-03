@@ -1,2 +1,2 @@
 # minesweeper
-Minesweeper clone written in Rust for WebAssembly
+Minesweeper clone written in Rust and WebAssembly
